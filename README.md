@@ -1,6 +1,6 @@
 # 🏦 Bank CIF & TPIN Management System
 
-A secure REST API built with **Spring Boot 3.2.5** and **Java 21** for managing Bank Customer Information Files (CIF) and Transaction PINs (TPIN).
+A secure REST API built with **Spring Boot 4.0.6** and **Java 21** for managing Bank Customer Information Files (CIF) and Transaction PINs (TPIN).
 
 ---
 
@@ -41,14 +41,14 @@ Key security features:
 | Technology | Version | Purpose |
 |---|---|---|
 | Java | 21 | Language |
-| Spring Boot | 3.2.5 | Framework |
-| Spring Security | 6.x | Security layer |
-| Spring Data JPA | 3.x | Database ORM |
-| H2 Database | In-Memory | Data storage |
+| Spring Boot | 4.0.6 | Framework |
+| Spring Security | (managed by Boot 4.0.6) | Security layer |
+| Spring Data JPA | (managed by Boot 4.0.6) | Database ORM |
+| H2 Database | (managed by Boot 4.0.6) | In-memory data storage |
 | JJWT | 0.12.5 | JWT generation & validation |
-| BCrypt | Built-in | TPIN hashing |
-| SpringDoc OpenAPI | 2.5.0 | Swagger UI |
-| Lombok | Latest | Boilerplate reduction |
+| BCrypt | Built-in via Spring Security | TPIN hashing |
+| SpringDoc OpenAPI | 3.0.2 | Swagger UI |
+| Lombok | (managed by Boot 4.0.6) | Boilerplate reduction |
 | Maven | 3.x | Build tool |
 
 ---
@@ -467,8 +467,83 @@ mvn test
 
 `src/main/resources/application.properties`
 
-```properties
-server.port=8080
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.6</version>
+</parent>
+```
+
+> ⚠️ **Note on your pom.xml:** Several artifact IDs in the uploaded `pom.xml` don't exist in Maven Central and will cause build failures. Use the corrected versions below:
+
+| Your artifact ID | ❌ Problem | ✅ Correct artifact ID |
+|---|---|---|
+| `spring-boot-h2console` | Doesn't exist | `spring-boot-starter-web` |
+| `spring-boot-starter-webmvc` | Doesn't exist | `spring-boot-starter-web` |
+| `spring-boot-starter-data-jpa-test` | Doesn't exist | `spring-boot-starter-test` |
+| `spring-boot-starter-validation-test` | Doesn't exist | `spring-boot-starter-test` |
+| `spring-boot-starter-webmvc-test` | Doesn't exist | `spring-boot-starter-test` |
+
+**Correct `pom.xml` dependencies section:**
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-api</artifactId>
+        <version>0.12.5</version>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-impl</artifactId>
+        <version>0.12.5</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-jackson</artifactId>
+        <version>0.12.5</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>3.0.2</version>
+    </dependency>
+    <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
 
 # H2 In-Memory Database
 spring.datasource.url=jdbc:h2:mem:bankdb
