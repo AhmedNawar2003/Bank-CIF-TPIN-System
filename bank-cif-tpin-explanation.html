@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bank CIF & TPIN — شرح الكود</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0f1a;
+  --bg2:#111827;
+  --bg3:#1a2234;
+  --card:#161d2e;
+  --border:#1e2d45;
+  --blue:#3b82f6;
+  --blue2:#1d4ed8;
+  --teal:#14b8a6;
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --purple:#a855f7;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --accent:#0ea5e9;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:15px;line-height:1.8;min-height:100vh}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#0b0f1a 0%,#0f172a 50%,#0b1a2e 100%);border-bottom:1px solid var(--border);padding:60px 40px 50px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.12) 0%,transparent 70%)}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--blue);margin-bottom:24px;font-family:'JetBrains Mono',monospace}
+.hero h1{font-size:36px;font-weight:600;color:#fff;margin-bottom:12px;letter-spacing:-0.5px}
+.hero p{color:var(--muted);font-size:16px;max-width:600px;margin:0 auto}
+
+/* nav pills */
+.nav{display:flex;gap:8px;padding:20px 40px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.nav a{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;color:var(--muted);border:1px solid transparent;text-decoration:none;transition:all .2s}
+.nav a:hover,.nav a.active{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);color:var(--blue)}
+
+/* layout */
+.container{max-width:1000px;margin:0 auto;padding:40px}
+.section{margin-bottom:60px}
+.section-title{font-size:22px;font-weight:600;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section-sub{color:var(--muted);margin-bottom:28px;font-size:14px}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;transition:border-color .2s}
+.card:hover{border-color:var(--blue2)}
+.card-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.card-title{font-size:16px;font-weight:600;color:#fff}
+.card-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
+.card-body{color:#94a3b8;font-size:14px;line-height:1.8}
+
+/* flow */
+.flow{display:flex;flex-direction:column;gap:0}
+.flow-step{display:flex;gap:20px;position:relative;padding-bottom:28px}
+.flow-step:last-child{padding-bottom:0}
+.flow-step:not(:last-child) .flow-line{position:absolute;right:19px;top:44px;bottom:0;width:2px;background:linear-gradient(to bottom,var(--border),transparent)}
+.flow-num{flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;font-family:'JetBrains Mono',monospace;position:relative;z-index:1}
+.flow-body{flex:1;padding-top:8px}
+.flow-title{font-weight:600;color:#fff;font-size:15px;margin-bottom:6px}
+.flow-desc{color:#94a3b8;font-size:13px;line-height:1.7}
+
+/* code block */
+.code{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;overflow-x:auto;margin:12px 0}
+.code .k{color:#ff7b72}
+.code .s{color:#a5d6ff}
+.code .c{color:#8b949e}
+.code .a{color:#ffa657}
+.code .n{color:#79c0ff}
+.code .t{color:#7ee787}
+
+/* grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* badge */
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:500;font-family:'JetBrains Mono',monospace}
+.badge-blue{background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+.badge-green{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+.badge-amber{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+.badge-red{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.badge-purple{background:rgba(168,85,247,.15);color:#d8b4fe;border:1px solid rgba(168,85,247,.3)}
+.badge-teal{background:rgba(20,184,166,.15);color:#5eead4;border:1px solid rgba(20,184,166,.3)}
+
+/* api endpoint card */
+.endpoint{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.endpoint-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.method{padding:4px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+.method-post{background:rgba(34,197,94,.2);color:#86efac}
+.ep-path{font-family:'JetBrains Mono',monospace;font-size:13px;color:#e2e8f0}
+.endpoint-body{padding:16px 20px}
+.endpoint-desc{color:#94a3b8;font-size:13px;margin-bottom:12px}
+.ep-req,.ep-res{margin-top:10px}
+.ep-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+
+/* status flow */
+.status-flow{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:20px 0}
+.status-node{padding:10px 20px;border-radius:8px;font-weight:500;font-size:13px;text-align:center}
+.status-arrow{color:var(--muted);padding:0 8px;font-size:18px}
+.s-pending{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+.s-active{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+.s-blocked{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+
+/* security layer */
+.sec-layers{display:flex;flex-direction:column;gap:10px}
+.sec-layer{display:flex;align-items:center;gap:14px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:14px 18px}
+.sec-layer-icon{font-size:20px;flex-shrink:0}
+.sec-layer-title{font-weight:600;color:#c084fc;font-size:14px}
+.sec-layer-desc{color:#94a3b8;font-size:12px}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--bg3);color:var(--muted);font-weight:500;padding:10px 14px;text-align:right;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 14px;border-bottom:1px solid rgba(30,45,69,.5);color:#94a3b8}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+@media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr}.hero{padding:40px 20px}.container{padding:24px}.nav{padding:12px 20px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">🏦 Bank CIF &amp; TPIN System — شرح تفصيلي</div>
+  <h1>كيف يشتغل الكود؟</h1>
+  <p>شرح كل layer وكل class وليه موجودة — من الـ API لحد الـ Security</p>
+</div>
+
+<div class="nav">
+  <a href="#idea">الفكرة العامة</a>
+  <a href="#layers">الـ Layers</a>
+  <a href="#model">الـ Model</a>
+  <a href="#api">الـ APIs</a>
+  <a href="#service">الـ Service</a>
+  <a href="#security">الـ Security</a>
+  <a href="#logging">الـ Logging</a>
+  <a href="#flow">سيناريوهات</a>
+</div>
+
+<div class="container">
+
+  <!-- IDEA -->
+  <div class="section" id="idea">
+    <div class="section-title">💡 الفكرة العامة</div>
+    <div class="section-sub">المشروع بيعمل إيه بالظبط؟</div>
+
+    <div class="card">
+      <div class="card-body">
+        الـ System بيدير <strong style="color:#fff">حسابات CIF (Customer Information File)</strong> في البنك.
+        كل عميل عنده رقم CIF وبيحتاج يعمل TPIN (Transaction PIN) عشان يقدر يعمل عمليات.
+        <br><br>
+        الـ System بيحمي الـ TPIN بـ <strong style="color:#fff">BCrypt hashing</strong> — يعني حتى لو حد وصل للـ database، مش هيلاقي الـ PIN الحقيقي.
+        وبعد 3 محاولات فاشلة، الحساب بيتحجب تلقائياً.
+        وبعد الـ authenticate الناجح، بيتعمل <strong style="color:#fff">JWT token</strong> يستخدمه العميل في كل الـ requests الجاية.
+      </div>
+    </div>
+
+    <div class="status-flow">
+      <div class="status-node s-pending">PENDING_TPIN<br><small>تسجيل جديد</small></div>
+      <div class="status-arrow">→</div>
+      <div class="status-node s-active">ACTIVE<br><small>بعد تحديد TPIN</small></div>
+      <div class="status-arrow">→</div>
+      <div class="status-node s-blocked">BLOCKED<br><small>بعد 3 فشل</small></div>
+      <div class="status-arrow">→</div>
+      <div class="status-node s-active">ACTIVE<br><small>بعد Reset TPIN</small></div>
+    </div>
+  </div>
+
+  <!-- LAYERS -->
+  <div class="section" id="layers">
+    <div class="section-title">🗂️ الـ Layers — طبقات المشروع</div>
+    <div class="section-sub">المشروع بيستخدم Architecture مقسمة في طبقات واضحة</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(59,130,246,.15)">🌐</div>
+          <div><div class="card-title">Controller Layer</div><div class="card-file">controller/CifTpinController.java</div></div>
+        </div>
+        <div class="card-body">بيستقبل الـ HTTP requests من المستخدم. مش بيعمل أي business logic — بس بيستقبل ويوصل للـ Service ويرجع الـ response.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(34,197,94,.15)">⚙️</div>
+          <div><div class="card-title">Service Layer</div><div class="card-file">service/CifTpinService.java</div></div>
+        </div>
+        <div class="card-body">هنا بيحصل كل الـ business logic — تسجيل، تحقق من TPIN، عد الفشل، حجب الحساب. هو "عقل" التطبيق.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(245,158,11,.15)">🗄️</div>
+          <div><div class="card-title">Repository Layer</div><div class="card-file">repository/CifAccountRepository.java</div></div>
+        </div>
+        <div class="card-body">بيكلم الـ database. بيستخدم Spring Data JPA اللي بيولد الـ SQL تلقائياً من اسم الـ method.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(168,85,247,.15)">🔐</div>
+          <div><div class="card-title">Security Layer</div><div class="card-file">security/</div></div>
+        </div>
+        <div class="card-body">بيحمي الـ endpoints — كل request بيعدي عليه، بيتحقق من الـ JWT token، ولو مش موجود أو غلط بيرجع 401.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(20,184,166,.15)">📦</div>
+          <div><div class="card-title">Model &amp; DTO Layer</div><div class="card-file">model/ + dto/</div></div>
+        </div>
+        <div class="card-body">الـ Model هو شكل البيانات في الـ database. الـ DTOs هي شكل البيانات اللي بتيجي من المستخدم أو بترجعله.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(239,68,68,.15)">🚨</div>
+          <div><div class="card-title">Exception Layer</div><div class="card-file">exception/</div></div>
+        </div>
+        <div class="card-body">بيمسك كل الـ errors ويرجعها كـ JSON واضح بدل stacktrace. كل نوع error عنده HTTP status كود مناسب.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODEL -->
+  <div class="section" id="model">
+    <div class="section-title">🗃️ الـ Data Model</div>
+    <div class="section-sub">ازاي البيانات بتتخزن في الـ Database</div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(245,158,11,.15)">📋</div>
+        <div><div class="card-title">CifAccount.java — الـ Entity</div><div class="card-file">model/CifAccount.java</div></div>
+      </div>
+      <div class="card-body" style="margin-bottom:14px">الـ @Entity دي بتقول لـ Spring إن الـ class دا جدول في الـ database. كل field بيبقى column.</div>
+
+      <table class="tbl">
+        <tr><th>الـ Field</th><th>النوع</th><th>الهدف</th></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">cifNumber</code></td><td><span class="badge badge-blue">String</span></td><td>الرقم الفريد للعميل في البنك</td></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">fullName</code></td><td><span class="badge badge-blue">String</span></td><td>الاسم الكامل للعميل</td></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">email</code></td><td><span class="badge badge-blue">String</span></td><td>الإيميل (unique)</td></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">tpinHash</code></td><td><span class="badge badge-purple">BCrypt Hash</span></td><td>الـ TPIN متشفر — مش plain text</td></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">status</code></td><td><span class="badge badge-amber">Enum</span></td><td>PENDING_TPIN / ACTIVE / BLOCKED</td></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">failedAttempts</code></td><td><span class="badge badge-red">int</span></td><td>عدد المحاولات الفاشلة (0→1→2→3 = blocked)</td></tr>
+        <tr><td><code style="font-family:'JetBrains Mono',monospace;color:#79c0ff">createdAt / updatedAt</code></td><td><span class="badge badge-teal">LocalDateTime</span></td><td>بيتعبئ تلقائياً بـ @PrePersist / @PreUpdate</td></tr>
+      </table>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-header"><div class="card-title" style="font-size:14px">ليه BCrypt للـ TPIN؟</div></div>
+        <div class="card-body">BCrypt هي خوارزمية تشفير one-way — يعني مفيش طريقة ترجع منها الـ PIN الأصلي. لما المستخدم يدخل الـ TPIN، بنشفره ونقارنه بالمشفر في الـ DB.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title" style="font-size:14px">ليه H2 In-Memory؟</div></div>
+        <div class="card-body">H2 Database بتشتغل جوا الـ RAM — مفيش installation، مفيش setup. كل ما التطبيق بيقفل، البيانات بتتمسح. مثالية للـ development والـ testing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APIs -->
+  <div class="section" id="api">
+    <div class="section-title">🌐 الـ REST APIs — الـ 4 endpoints</div>
+    <div class="section-sub">كل endpoint بيعمل إيه وإيه اللي بيدخل ويطلع</div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="ep-path">/api/v1/cif/register</span>
+        <span class="badge badge-green" style="margin-right:auto">Public</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="endpoint-desc">بيسجل CIF جديد في الـ system. الحساب بيتعمل بحالة PENDING_TPIN — يعني لازم يحدد TPIN قبل ما يقدر يعمل أي حاجة.</div>
+        <div class="ep-label">Request Body</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"cifNumber"</span>: <span class="t">"123456789"</span>,
+  <span class="s">"fullName"</span>: <span class="t">"Ahmed Nawar"</span>,
+  <span class="s">"email"</span>: <span class="t">"ahmed@bank.com"</span>
+<span class="k">}</span></div>
+        <div class="ep-label">Response — 201 Created</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"success"</span>: <span class="n">true</span>,
+  <span class="s">"message"</span>: <span class="t">"CIF registered successfully. Please set your TPIN."</span>,
+  <span class="s">"data"</span>: { <span class="s">"cifNumber"</span>: <span class="t">"123456789"</span>, <span class="s">"status"</span>: <span class="t">"PENDING_TPIN"</span> <span class="c">...</span> }
+<span class="k">}</span></div>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="ep-path">/api/v1/cif/set-tpin</span>
+        <span class="badge badge-green" style="margin-right:auto">Public</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="endpoint-desc">بيحدد TPIN للـ CIF الجديد ويغير الـ status من PENDING_TPIN لـ ACTIVE. لو الحساب ACTIVE بالفعل، بيرجع error.</div>
+        <div class="ep-label">Request Body</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"cifNumber"</span>: <span class="t">"123456789"</span>,
+  <span class="s">"tpin"</span>: <span class="t">"1234"</span>  <span class="c">// 4-6 أرقام فقط</span>
+<span class="k">}</span></div>
+        <div class="ep-label">Response — 200 OK</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"success"</span>: <span class="n">true</span>,
+  <span class="s">"message"</span>: <span class="t">"TPIN set successfully. Account is now active."</span>,
+  <span class="s">"data"</span>: { <span class="s">"status"</span>: <span class="t">"ACTIVE"</span>, <span class="s">"tpinConfigured"</span>: <span class="n">true</span> <span class="c">...</span> }
+<span class="k">}</span></div>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="ep-path">/api/v1/cif/authenticate</span>
+        <span class="badge badge-green" style="margin-right:auto">Public → يرجع JWT</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="endpoint-desc">أهم endpoint. بيتحقق من الـ CIF والـ TPIN. لو صح بيرجع JWT token. لو غلط 3 مرات متتالية، الحساب بيتحجب.</div>
+        <div class="ep-label">Request Body</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"cifNumber"</span>: <span class="t">"123456789"</span>,
+  <span class="s">"tpin"</span>: <span class="t">"1234"</span>
+<span class="k">}</span></div>
+        <div class="ep-label">Response — 200 OK</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"success"</span>: <span class="n">true</span>,
+  <span class="s">"data"</span>: <span class="k">{</span>
+    <span class="s">"token"</span>: <span class="t">"eyJhbGciOiJIUzI1NiJ9..."</span>,
+    <span class="s">"tokenType"</span>: <span class="t">"Bearer"</span>,
+    <span class="s">"expiresIn"</span>: <span class="n">86400</span>  <span class="c">// 24 ساعة</span>
+  <span class="k">}</span>
+<span class="k">}</span></div>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method method-post">POST</span>
+        <span class="ep-path">/api/v1/cif/reset-tpin</span>
+        <span class="badge badge-green" style="margin-right:auto">Public</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="endpoint-desc">بيفك الحجب عن الـ CIF المحجوب ويحدد TPIN جديد. كمان ممكن يتستخدم لو العميل عايز يغير الـ TPIN حتى لو مش محجوب.</div>
+        <div class="ep-label">Request Body</div>
+        <div class="code"><span class="k">{</span>
+  <span class="s">"cifNumber"</span>: <span class="t">"123456789"</span>,
+  <span class="s">"newTpin"</span>: <span class="t">"5678"</span>
+<span class="k">}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICE -->
+  <div class="section" id="service">
+    <div class="section-title">⚙️ الـ Service — عقل التطبيق</div>
+    <div class="section-sub">CifTpinService.java — هنا بيحصل كل الـ logic المهم</div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-line"></div>
+        <div class="flow-num" style="background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.3)">1</div>
+        <div class="flow-body">
+          <div class="flow-title">register() — التسجيل</div>
+          <div class="flow-desc">بيتحقق إن الـ cifNumber مش موجود قبل كده، وإن الإيميل مش متكرر. لو الاتنين جدد، بيعمل account بحالة PENDING_TPIN.</div>
+          <div class="code"><span class="c">// بيتحقق من التكرار</span>
+<span class="k">if</span> (cifAccountRepository.<span class="a">existsByCifNumber</span>(request.getCifNumber())) {
+    <span class="k">throw new</span> <span class="n">CifAlreadyExistsException</span>(<span class="t">"CIF already registered"</span>);
+}
+<span class="c">// بيبني الـ account الجديد</span>
+CifAccount account = CifAccount.builder()
+    .status(<span class="n">CifStatus.PENDING_TPIN</span>)
+    .failedAttempts(<span class="n">0</span>)
+    .build();</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-line"></div>
+        <div class="flow-num" style="background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.3)">2</div>
+        <div class="flow-body">
+          <div class="flow-title">setTpin() — تحديد الـ TPIN</div>
+          <div class="flow-desc">بيشفر الـ TPIN بـ BCrypt قبل ما يخزنه. مش بيخزن أبداً الـ plain text. بيغير الـ status لـ ACTIVE.</div>
+          <div class="code"><span class="c">// التشفير — passwordEncoder هو BCryptPasswordEncoder</span>
+account.<span class="a">setTpinHash</span>(passwordEncoder.<span class="a">encode</span>(request.getTpin()));
+account.<span class="a">setStatus</span>(<span class="n">CifStatus.ACTIVE</span>);</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-line"></div>
+        <div class="flow-num" style="background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)">3</div>
+        <div class="flow-body">
+          <div class="flow-title">authenticate() — المصادقة</div>
+          <div class="flow-desc">ده الـ logic الأهم — بيقارن الـ TPIN المدخول بالمشفر، وبيزود عداد الفشل، ولما يوصل لـ 3 بيحجب الحساب.</div>
+          <div class="code"><span class="k">boolean</span> tpinMatches = passwordEncoder.<span class="a">matches</span>(request.getTpin(), account.getTpinHash());
+
+<span class="k">if</span> (!tpinMatches) {
+    <span class="k">int</span> newFailed = account.getFailedAttempts() + <span class="n">1</span>;
+    account.<span class="a">setFailedAttempts</span>(newFailed);
+    
+    <span class="k">if</span> (newFailed >= <span class="n">3</span>) {  <span class="c">// MAX_FAILED_ATTEMPTS</span>
+        account.<span class="a">setStatus</span>(<span class="n">CifStatus.BLOCKED</span>);
+        <span class="k">throw new</span> <span class="n">CifBlockedException</span>(cifNumber);
+    }
+    <span class="k">throw new</span> <span class="n">InvalidTpinException</span>(<span class="n">3</span> - newFailed); <span class="c">// remaining</span>
+}
+<span class="c">// نجاح — بيصفر العداد</span>
+account.<span class="a">setFailedAttempts</span>(<span class="n">0</span>);</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num" style="background:rgba(168,85,247,.15);color:#d8b4fe;border:1px solid rgba(168,85,247,.3)">4</div>
+        <div class="flow-body">
+          <div class="flow-title">resetTpin() — إعادة التعيين</div>
+          <div class="flow-desc">بيشتغل سواء الحساب محجوب أو لأ. بيشفر الـ TPIN الجديد، بيصفر العداد، ويرجع الـ status لـ ACTIVE.</div>
+          <div class="code">account.<span class="a">setTpinHash</span>(passwordEncoder.<span class="a">encode</span>(request.getNewTpin()));
+account.<span class="a">setStatus</span>(<span class="n">CifStatus.ACTIVE</span>);
+account.<span class="a">setFailedAttempts</span>(<span class="n">0</span>);</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="section" id="security">
+    <div class="section-title">🔐 الـ Security — الـ 4 Classes</div>
+    <div class="section-sub">كل class في الـ security package بيعمل دور مختلف</div>
+
+    <div class="sec-layers" style="margin-bottom:20px">
+      <div class="sec-layer">
+        <div class="sec-layer-icon">⚙️</div>
+        <div>
+          <div class="sec-layer-title">SecurityConfig.java</div>
+          <div class="sec-layer-desc">بيحدد مين يقدر يدخل على أي endpoint. الـ 4 endpoints الأساسية (register, set-tpin, authenticate, reset-tpin) public. أي endpoint تاني محتاج JWT token. بيعطل الـ CSRF لأن الـ API stateless. Session نوعها STATELESS — مفيش server-side sessions.</div>
+        </div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🔑</div>
+        <div>
+          <div class="sec-layer-title">JwtService.java</div>
+          <div class="sec-layer-desc">بيعمل generate للـ JWT token بعد الـ authenticate الناجح — بيحط فيه الـ cifNumber كـ subject والـ expiry كـ 24 ساعة. بيعمل validate للـ token — بيتحقق من التوقيع والـ expiry. بيعمل extract الـ cifNumber من الـ token في أي وقت.</div>
+        </div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🔎</div>
+        <div>
+          <div class="sec-layer-title">JwtAuthenticationFilter.java</div>
+          <div class="sec-layer-desc">بيشتغل على كل request قبل ما يوصل للـ controller. بيقرأ الـ "Authorization: Bearer token" header. لو الـ token صح، بيعمل authentication في الـ SecurityContext. لو غلط أو مش موجود، بيعمل nothing — الـ SecurityConfig هو اللي بيحجب الـ request.</div>
+        </div>
+      </div>
+      <div class="sec-layer">
+        <div class="sec-layer-icon">🚫</div>
+        <div>
+          <div class="sec-layer-title">SecurityExceptionHandler.java</div>
+          <div class="sec-layer-desc">بيمسك الـ 401 Unauthorized (لو مفيش token أو token غلط) والـ 403 Forbidden (لو عنده token بس مش عنده صلاحية). بيرجعهم كـ JSON واضح بدل صفحة HTML من Spring.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">كيف الـ JWT بيشتغل خطوة بخطوة</div></div>
+      <div class="card-body">
+        <div class="flow" style="margin-top:10px">
+          <div class="flow-step">
+            <div class="flow-line"></div>
+            <div class="flow-num" style="background:rgba(59,130,246,.1);color:#93c5fd;border:1px solid rgba(59,130,246,.3);width:28px;height:28px;font-size:12px">1</div>
+            <div class="flow-body"><div class="flow-title" style="font-size:13px">المستخدم يعمل POST /authenticate</div><div class="flow-desc">بيبعت الـ cifNumber والـ TPIN</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-line"></div>
+            <div class="flow-num" style="background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.3);width:28px;height:28px;font-size:12px">2</div>
+            <div class="flow-body"><div class="flow-title" style="font-size:13px">الـ Service يتحقق وينجح</div><div class="flow-desc">الـ JwtService يعمل generate لـ token يحتوي على الـ cifNumber</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-line"></div>
+            <div class="flow-num" style="background:rgba(245,158,11,.1);color:#fcd34d;border:1px solid rgba(245,158,11,.3);width:28px;height:28px;font-size:12px">3</div>
+            <div class="flow-body"><div class="flow-title" style="font-size:13px">المستخدم يستخدم الـ token</div><div class="flow-desc">يحط الـ token في كل request: Authorization: Bearer eyJ...</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num" style="background:rgba(168,85,247,.1);color:#d8b4fe;border:1px solid rgba(168,85,247,.3);width:28px;height:28px;font-size:12px">4</div>
+            <div class="flow-body"><div class="flow-title" style="font-size:13px">الـ JwtAuthenticationFilter يتحقق</div><div class="flow-desc">كل request بيعدي عليه — لو الـ token صح، الـ request بيكمل</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGGING -->
+  <div class="section" id="logging">
+    <div class="section-title">📋 الـ Logging</div>
+    <div class="section-sub">كل request وresponse بيتسجل تلقائياً</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header"><div class="card-title" style="font-size:14px">RequestResponseLoggingFilter.java</div></div>
+        <div class="card-body">بيشتغل على كل API request. بيلوج الـ method، الـ URL، الـ IP، وجسم الـ request والـ response مع الـ status code والوقت المستغرق. الـ TPIN بيتحول لـ **** في اللوج عشان الأمان.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title" style="font-size:14px">logs/bank-cif-tpin.log</div></div>
+        <div class="card-body">كل الـ logs بتتكتب في ملف. شكل اللوج كده:</div>
+      </div>
+    </div>
+
+    <div class="code" style="margin-top:4px">
+<span class="c">====================================================</span>
+<span class="k">[REQUEST-A1B2C3D4]</span> <span class="a">POST</span> /api/v1/cif/authenticate | IP: 127.0.0.1
+  Body: <span class="k">{"cifNumber":"123456789","tpin":"****"}</span>  <span class="c">← TPIN مخفي</span>
+<span class="k">[RESPONSE-A1B2C3D4]</span> Status: <span class="t">200</span> | Duration: <span class="n">43ms</span>
+  Body: <span class="k">{"success":true,"data":{"token":"eyJ..."}}</span>
+<span class="c">====================================================</span></div>
+  </div>
+
+  <!-- FLOW SCENARIOS -->
+  <div class="section" id="flow">
+    <div class="section-title">🎬 سيناريوهات كاملة</div>
+    <div class="section-sub">امتى تستخدم كل endpoint</div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">✅ السيناريو الطبيعي — Happy Path</div></div>
+      <div class="code">
+<span class="c">1. التسجيل</span>
+<span class="a">POST</span> /register → { cifNumber, fullName, email }
+<span class="c">   ← 201 | status: PENDING_TPIN</span>
+
+<span class="c">2. تحديد TPIN</span>
+<span class="a">POST</span> /set-tpin → { cifNumber, tpin: "1234" }
+<span class="c">   ← 200 | status: ACTIVE</span>
+
+<span class="c">3. تسجيل الدخول</span>
+<span class="a">POST</span> /authenticate → { cifNumber, tpin: "1234" }
+<span class="c">   ← 200 | token: "eyJ..."</span>
+
+<span class="c">4. استخدام الـ token</span>
+<span class="a">GET</span>  /any-protected-endpoint
+<span class="c">     Authorization: Bearer eyJ...</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">🔴 سيناريو الحجب — Block Scenario</div></div>
+      <div class="code">
+<span class="a">POST</span> /authenticate → tpin: "9999"  <span class="c">← 401 | Remaining: 2</span>
+<span class="a">POST</span> /authenticate → tpin: "9999"  <span class="c">← 401 | Remaining: 1</span>
+<span class="a">POST</span> /authenticate → tpin: "9999"  <span class="c">← 403 | CIF is BLOCKED</span>
+
+<span class="c">— لازم يعمل reset —</span>
+
+<span class="a">POST</span> /reset-tpin → { cifNumber, newTpin: "5678" }
+<span class="c">   ← 200 | status: ACTIVE (unblocked + new TPIN)</span>
+
+<span class="a">POST</span> /authenticate → tpin: "5678"
+<span class="c">   ← 200 | token جديد ✓</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const nav = document.querySelectorAll('.nav a');
+const sections = document.querySelectorAll('.section');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      nav.forEach(a => a.classList.remove('active'));
+      const active = document.querySelector(`.nav a[href="#${e.target.id}"]`);
+      if(active) active.classList.add('active');
+    }
+  });
+},{threshold:0.3});
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
